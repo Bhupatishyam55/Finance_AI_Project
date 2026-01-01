@@ -35,7 +35,6 @@ xlrd==2.0.1
 # =========================
 spacy==3.7.2
 # Use the direct name; Railway will handle the download if we add a command
-en_core_web_sm
 
 # =========================
 # ML / AI (CPU ONLY - Optimized for Railway)
