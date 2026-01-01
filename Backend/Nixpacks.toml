@@ -1,0 +1,14 @@
+[variables]
+    PYTHON_VERSION = "3.11"
+
+[phases.setup]
+    # Installs Python 3.11 and the system binaries for OCR and PDF processing
+    nixPkgs = ["python311", "tesseract", "poppler_utils", "libglvnd"]
+
+[phases.install]
+    # Ensures pip is up to date before installing requirements
+    cmds = ["python -m pip install --upgrade pip", "pip install -r requirements.txt"]
+
+[phases.build]
+    # Downloads the spaCy model needed for NER
+    cmds = ["python -m spacy download en_core_web_sm"]
