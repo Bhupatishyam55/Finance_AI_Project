@@ -47,6 +47,7 @@ faiss-cpu==1.7.4
 torch==2.1.2+cpu
 torchvision==0.16.2+cpu
 
-sentence-transformers==2.2.2
+# NLP / Transformers (Railway-safe combo)
 transformers==4.34.1
-huggingface_hub==0.19.4
+sentence-transformers==2.2.2
+tokenizers==0.14.1
