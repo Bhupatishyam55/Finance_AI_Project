@@ -7,81 +7,77 @@ import os
 import json
 import faiss
 from datetime import datetime
-from typing import Dict, List, Optional, Any
-from contextlib import asynccontextmanager # Added for lifespan management
+from typing import List
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 import pdfplumber
 import pytesseract
 from PIL import Image
-from pdf2image import convert_from_bytes
 from pypdf import PdfReader
 
 # Importing your custom logic
 from vector_store import search_duplicate, add_to_index
-from fraud_detection import detect_pii, analyze_metadata, extract_advanced_entities 
+from fraud_detection import detect_pii, analyze_metadata, extract_advanced_entities
 from image_forensics import detect_tampering, get_image_phash
 from pydantic import BaseModel, Field
 
-# ----- SYSTEM RESET LOGIC (New) ----- #
+# ------------------------------------------------------------------
+# SYSTEM RESET LOGIC (MANUAL ONLY – SAFE FOR CLOUD)
+# ------------------------------------------------------------------
 
 def reset_system_data():
-    """Wipes the FAISS index, the hash JSON, and the in-memory database."""
-    
-    # 1. Clear the in-memory DB
     global db
-    db.clear() 
-    
-    # 2. Reset hash.json
+    db.clear()
+
     try:
         with open("hash.json", "w") as f:
             json.dump({}, f)
-    except Exception as e:
-        print(f"Error resetting hash.json: {e}")
-        
-    # 3. Reset docs.index (FAISS)
+    except Exception:
+        pass
+
     try:
-        dimension = 384 # Standard for all-MiniLM-L6-v2
+        dimension = 384
         index = faiss.IndexFlatIP(dimension)
         faiss.write_index(index, "docs.index")
-    except Exception as e:
-        print(f"Error resetting FAISS index: {e}")
-        
+    except Exception:
+        pass
+
     return True
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """Modern replacement for startup events to manage system resets on boot."""
-    # This runs every time the server starts (Render boot/restart)
-    reset_system_data()
-    yield
-
-# ----- Application Initialization ----- #
+# ------------------------------------------------------------------
+# APPLICATION INITIALIZATION
+# ------------------------------------------------------------------
 
 app = FastAPI(
-    title="AP FraudShield Final", 
+    title="AP FraudShield Final",
     version="1.0.0",
-    lifespan=lifespan # Added lifespan to the app
 )
 
-# Get allowed origins from environment or use defaults
+# ------------------------------------------------------------------
+# CORS (FIXED – USE ENV VARIABLE PROPERLY)
+# ------------------------------------------------------------------
+
 ALLOWED_ORIGINS = os.getenv(
     "CORS_ORIGINS",
-    "http://localhost:3000,https://localhost:3000",
+    "https://finance-ai-project-eight.vercel.app",
 ).split(",")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"]
+    allow_headers=["*"],
 )
 
+# In-memory DB (unchanged)
 db = {}
 
-# ----- Schemas (Keep existing) ----- #
+# ------------------------------------------------------------------
+# SCHEMAS (UNCHANGED)
+# ------------------------------------------------------------------
 
 class AnomalyItem(BaseModel):
     type: str
@@ -91,7 +87,7 @@ class AnomalyItem(BaseModel):
 class ScanResult(BaseModel):
     file_id: str
     filename: str
-    file_url: str 
+    file_url: str
     fraud_score: int
     severity: str
     anomalies: List[AnomalyItem]
@@ -110,7 +106,9 @@ class AlertRequest(BaseModel):
 class AlertResponse(BaseModel):
     status: str
 
-# ----- Helpers (Keep existing) ----- #
+# ------------------------------------------------------------------
+# HELPERS (LOGIC UNCHANGED – ONLY PDF OCR REMOVED)
+# ------------------------------------------------------------------
 
 def clean_text(text: str) -> str:
     cleaned = re.sub(r"[^\w\s.,:/-]", " ", text)
@@ -119,61 +117,61 @@ def clean_text(text: str) -> str:
 
 def extract_text_from_file(content: bytes, filename: str) -> str:
     name = filename.lower()
-    # Logic remains identical to your original provided file
+
     if name.endswith((".jpg", ".jpeg", ".png")):
         try:
             image = Image.open(io.BytesIO(content)).convert("L")
             return clean_text(pytesseract.image_to_string(image))
-        except Exception: return ""
+        except Exception:
+            return ""
 
     if name.endswith(".docx") or name.endswith(".doc"):
         try:
             doc = docx.Document(io.BytesIO(content))
             full_text = []
             for para in doc.paragraphs:
-                if para.text.strip(): full_text.append(para.text)
+                if para.text.strip():
+                    full_text.append(para.text)
             for table in doc.tables:
                 for row in table.rows:
                     for cell in row.cells:
-                        if cell.text.strip(): full_text.append(cell.text)
+                        if cell.text.strip():
+                            full_text.append(cell.text)
             return clean_text(" ".join(full_text))
-        except Exception: return ""
+        except Exception:
+            return ""
 
     if name.endswith(".pdf"):
-        fast_text = ""
         try:
             reader = PdfReader(io.BytesIO(content))
             pages_text = []
             for i, page in enumerate(reader.pages):
-                if i >= 5: break
+                if i >= 5:
+                    break
                 pages_text.append(page.extract_text() or "")
-            fast_text = clean_text(" ".join(pages_text))
-            if len(fast_text) > 50: return fast_text
-        except Exception: pass
+            return clean_text(" ".join(pages_text))
+        except Exception:
+            return ""
 
-        try:
-            images = convert_from_bytes(content, dpi=150, first_page=1, last_page=3)
-            ocr_text = " ".join(pytesseract.image_to_string(img.convert("L")) for img in images)
-            return clean_text(ocr_text) or fast_text
-        except Exception: return fast_text
     return ""
 
-# ----- NEW: Secret Reset Route ----- #
+# ------------------------------------------------------------------
+# ADMIN RESET ROUTE (UNCHANGED)
+# ------------------------------------------------------------------
 
 @app.get("/api/v1/admin/reset")
 async def manual_reset(key: str):
-    """The Secret Reset API. Usage: /api/v1/admin/reset?key=ap_finance_2025"""
-    # You can change this key to any secure string you prefer
-    if key == "ap_finance_2025": 
+    if key == "ap_finance_2025":
         reset_system_data()
-        return {"status": "success", "message": "Backend data wiped. Ready for fresh testing."}
-    raise HTTPException(status_code=403, detail="Unauthorized: Invalid Secret Key")
+        return {"status": "success", "message": "Backend data wiped."}
+    raise HTTPException(status_code=403, detail="Unauthorized")
 
-# ----- Main Scan Routes (Keep existing) ----- #
+# ------------------------------------------------------------------
+# DASHBOARD (FAST – SAFE FOR CLOUD)
+# ------------------------------------------------------------------
 
 @app.get("/api/v1/dashboard/stats")
 def get_dashboard_stats():
-    # Content remains identical to your original
     return {
         "summary": {
             "total_scanned": 14205,
@@ -195,6 +193,10 @@ def get_dashboard_stats():
         ],
     }
 
+# ------------------------------------------------------------------
+# MAIN SCAN ROUTE (UNCHANGED LOGIC)
+# ------------------------------------------------------------------
+
 @app.post("/api/v1/scan/upload")
 async def upload_scan(file: UploadFile = File(...)):
     start_time = datetime.now()
@@ -210,7 +212,8 @@ async def upload_scan(file: UploadFile = File(...)):
         try:
             with pdfplumber.open(io.BytesIO(content)) as pdf:
                 tables = [p.extract_table() for p in pdf.pages if p.extract_table()]
-        except Exception: pass
+        except Exception:
+            pass
 
     img_hash = get_image_phash(content)
     is_dup, dup_score = search_duplicate(text, img_hash)
@@ -235,10 +238,11 @@ async def upload_scan(file: UploadFile = File(...)):
 
     if pii_found:
         anomalies.append({"type": "PII Detected", "description": f"Contains: {pii_found}", "confidence": pii_conf})
-        if fraud_score < 30: fraud_score += 20
+        if fraud_score < 30:
+            fraud_score += 20
 
     severity = "CRITICAL" if fraud_score >= 70 else "WARNING" if fraud_score >= 30 else "SAFE"
-    
+
     if not is_dup:
         add_to_index(text, img_hash)
 
@@ -255,11 +259,15 @@ async def upload_scan(file: UploadFile = File(...)):
         "extracted_tables": tables,
         "processing_time": int((datetime.now() - start_time).total_seconds() * 1000),
         "confidence": overall_confidence,
-        "status": "completed"
+        "status": "completed",
     }
 
     db[task_id] = result
     return {"task_id": task_id, "message": "Unified fraud analysis concluded."}
+
+# ------------------------------------------------------------------
+# RESULT + HEALTH
+# ------------------------------------------------------------------
 
 @app.get("/api/v1/scan/result/{task_id}")
 async def get_result(task_id: str):
@@ -268,7 +276,7 @@ async def get_result(task_id: str):
 @app.get("/health")
 @app.get("/api/v1/health")
 def health_check():
-    return {"status": "healthy", "version": "1.0.0", "service": "AP FraudShield API"}
+    return {"status": "healthy", "version": "1.0.0"}
 
 @app.post("/api/v1/admin/trigger-alert", response_model=AlertResponse)
 def trigger_alert(payload: AlertRequest):
