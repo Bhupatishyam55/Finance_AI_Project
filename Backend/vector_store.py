@@ -4,7 +4,6 @@ import json
 import threading
 import faiss
 import numpy as np
-from sentence_transformers import SentenceTransformer
 
 # ------------------------------------------------------------------
 # MEMORY SAFETY (IMPORTANT FOR RAILWAY)
@@ -14,19 +13,20 @@ from sentence_transformers import SentenceTransformer
 os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
 
-# Lazy-loaded model (DO NOT load at import time)
+# Lazy-loaded model (DO NOT load or import at startup)
 _model = None
 _model_lock = threading.Lock()
 
 def get_model():
     """
     Lazily loads the SentenceTransformer model.
-    This prevents Railway from crashing due to high memory usage on startup.
+    Torch is imported ONLY when this function is called.
     """
     global _model
     if _model is None:
         with _model_lock:
             if _model is None:
+                from sentence_transformers import SentenceTransformer
                 _model = SentenceTransformer(
                     "sentence-transformers/all-MiniLM-L6-v2",
                     device="cpu"
