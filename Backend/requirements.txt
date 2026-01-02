@@ -1,9 +1,8 @@
 # =========================
-# Core Framework & Production Server
+# Core Framework
 # =========================
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
-gunicorn==21.2.0
 python-multipart==0.0.6
 pydantic==2.5.0
 
@@ -12,7 +11,6 @@ pydantic==2.5.0
 # =========================
 python-docx==1.1.0
 pypdf==3.17.1
-pdf2image==1.16.3
 pdfplumber==0.10.3
 
 # =========================
@@ -31,23 +29,16 @@ openpyxl==3.1.2
 xlrd==2.0.1
 
 # =========================
-# NLP (spaCy)
+# NLP (spaCy – lightweight)
 # =========================
 spacy==3.7.2
-# Use the direct name; Railway will handle the download if we add a command
+thinc<8.3.0
+catalogue<2.1.0
+srsly<2.5.0
 
 # =========================
-# ML / AI (CPU ONLY - Optimized for Railway)
+# ML / Similarity (CPU ONLY)
 # =========================
-numpy==1.26.2
+numpy<2.0
 faiss-cpu==1.7.4
-
-# Torch configuration for CPU-only environments
---extra-index-url https://download.pytorch.org/whl/cpu
-torch==2.1.2+cpu
-torchvision==0.16.2+cpu
-
-# NLP / Transformers (Railway-safe combo)
-transformers==4.34.1
-sentence-transformers==2.2.2
-tokenizers==0.14.1
+sentence-transformers==2.7.0
