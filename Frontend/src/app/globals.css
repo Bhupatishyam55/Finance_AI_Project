@@ -1,0 +1,220 @@
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --primary-blue: #003366;
+    --slate-grey: #64748b;
+    --surface-white: #ffffff;
+    --surface-light: #f8fafc;
+    --border-color: #e2e8f0;
+    --success-green: #059669;
+    --danger-red: #dc2626;
+    --warning-amber: #d97706;
+  }
+
+  body {
+    @apply bg-surface-light text-slate-800 antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* High contrast scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-slate-100;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-400 rounded;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-500;
+  }
+
+  /* Focus styles for accessibility */
+  *:focus-visible {
+    @apply outline-2 outline-offset-2 outline-primary-500;
+  }
+}
+
+@layer components {
+  /* Card styles - flat, professional */
+  .gov-card {
+    @apply bg-white border border-slate-200 rounded-md shadow-sm;
+  }
+
+  .gov-card-hover {
+    @apply gov-card transition-shadow duration-200 hover:shadow-md;
+  }
+
+  .stat-card {
+    @apply gov-card p-5;
+  }
+
+  /* Button styles - solid colors, no gradients */
+  .btn-primary {
+    @apply px-4 py-2.5 bg-primary-500 text-white font-medium rounded-md
+           transition-colors duration-200 hover:bg-primary-600 active:bg-primary-700
+           focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+  }
+
+  .btn-danger {
+    @apply px-4 py-2.5 bg-danger-500 text-white font-medium rounded-md
+           transition-colors duration-200 hover:bg-danger-600 active:bg-danger-700
+           focus:ring-2 focus:ring-danger-500 focus:ring-offset-2;
+  }
+
+  .btn-secondary {
+    @apply px-4 py-2.5 bg-slate-100 text-slate-700 font-medium rounded-md border border-slate-300
+           transition-colors duration-200 hover:bg-slate-200 active:bg-slate-300
+           focus:ring-2 focus:ring-slate-400 focus:ring-offset-2;
+  }
+
+  .btn-ghost {
+    @apply px-4 py-2.5 bg-transparent text-slate-600 font-medium rounded-md border border-slate-300
+           transition-colors duration-200 hover:bg-slate-50 hover:text-slate-800
+           focus:ring-2 focus:ring-slate-400 focus:ring-offset-2;
+  }
+
+  /* Badge styles - solid backgrounds with subtle borders */
+  .badge {
+    @apply px-2.5 py-1 text-xs font-semibold rounded uppercase tracking-wide;
+  }
+
+  .badge-safe {
+    @apply badge bg-success-50 text-success-700 border border-success-200;
+  }
+
+  .badge-warning {
+    @apply badge bg-warning-50 text-warning-700 border border-warning-200;
+  }
+
+  .badge-critical {
+    @apply badge bg-danger-50 text-danger-700 border border-danger-200;
+  }
+
+  /* Input styles */
+  .input-field {
+    @apply w-full px-3 py-2.5 bg-white border border-slate-300 rounded-md text-slate-800
+           placeholder:text-slate-400 
+           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500
+           transition-colors duration-200;
+  }
+
+  /* Sidebar navigation */
+  .sidebar-link {
+    @apply flex items-center gap-3 px-3 py-2.5 text-slate-600 rounded-md transition-colors duration-200
+           hover:bg-slate-100 hover:text-slate-900;
+  }
+
+  .sidebar-link-active {
+    @apply sidebar-link bg-primary-50 text-primary-700 font-medium border-l-3 border-primary-500;
+  }
+
+  /* Table styles */
+  .gov-table {
+    @apply w-full text-sm text-left;
+  }
+
+  .gov-table thead {
+    @apply bg-slate-50 border-b-2 border-slate-200;
+  }
+
+  .gov-table th {
+    @apply px-4 py-3 font-semibold text-slate-700 uppercase tracking-wide text-xs;
+  }
+
+  .gov-table td {
+    @apply px-4 py-3 border-b border-slate-100;
+  }
+
+  .gov-table tbody tr:hover {
+    @apply bg-slate-50;
+  }
+
+  /* Progress bar */
+  .progress-bar {
+    @apply h-2 bg-slate-200 rounded-sm overflow-hidden;
+  }
+
+  .progress-bar-fill {
+    @apply h-full bg-primary-500 rounded-sm transition-all duration-500;
+  }
+
+  /* Gauge styles */
+  .fraud-gauge {
+    @apply relative w-48 h-24 overflow-hidden;
+  }
+
+  .fraud-gauge-bg {
+    @apply absolute inset-0 rounded-t-full border-8 border-slate-200;
+  }
+
+  .fraud-gauge-fill {
+    @apply absolute inset-0 rounded-t-full border-8 origin-bottom;
+    transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Alert styles */
+  .alert-info {
+    @apply p-4 bg-primary-50 border border-primary-200 text-primary-800 rounded-md;
+  }
+
+  .alert-success {
+    @apply p-4 bg-success-50 border border-success-200 text-success-800 rounded-md;
+  }
+
+  .alert-warning {
+    @apply p-4 bg-warning-50 border border-warning-200 text-warning-800 rounded-md;
+  }
+
+  .alert-danger {
+    @apply p-4 bg-danger-50 border border-danger-200 text-danger-800 rounded-md;
+  }
+}
+
+@layer utilities {
+  /* Remove all gradient text effects */
+  .text-gradient {
+    @apply text-primary-600;
+  }
+
+  .text-gradient-danger {
+    @apply text-danger-600;
+  }
+
+  /* Subtle grid pattern for backgrounds */
+  .pattern-grid {
+    background-image: 
+      linear-gradient(rgba(0, 51, 102, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 51, 102, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  /* Border utilities */
+  .border-l-3 {
+    border-left-width: 3px;
+  }
+
+  /* High contrast focus ring */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+  }
+}
+
+/* Force dark text on Analysis Results page heading */
+.analysis-results-heading {
+  color: #0f172a !important;
+}
+.analysis-results-subheading {
+  color: #475569 !important;
+}
+
